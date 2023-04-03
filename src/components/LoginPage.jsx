@@ -1,16 +1,36 @@
 import { useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { LockClosedIcon } from '@heroicons/react/24/outline';
+import { useAuth } from '@/hooks/useAuth';
+import toast, { Toaster } from 'react-hot-toast';
 
 export default function LoginPage() {
   const emailRef = useRef(null);
   const passwordRef = useRef(null);
+  const router = useRouter();
+
+  const auth = useAuth();
 
   const handleSubmit = (e) => {
     e.preventDefault();
     const email = emailRef.current.value;
     const password = passwordRef.current.value;
 
-    console.log(email, password);
+    auth
+      .singIn(email, password)
+      .then(() => {
+        toast.success('Successfully login!');
+        setTimeout(() => {
+          router.push('/dashboard');
+        }, 1500);
+      })
+      .catch((err) => {
+        if (err.response?.status === 401) {
+          toast.error('Unauthorized user');
+        } else {
+          toast.error(`Something was wrong ${err.response.message}`);
+        }
+      });
   };
 
   return (
@@ -85,6 +105,7 @@ export default function LoginPage() {
           </form>
         </div>
       </div>
+      <Toaster />
     </>
   );
 }
